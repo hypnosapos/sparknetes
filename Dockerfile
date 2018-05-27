@@ -5,7 +5,7 @@ FROM maven:${MVN_VERSION}-jdk-${JDK_VERSION}-slim
 
 ARG GIT_SPARK='branch-2.3'
 
-RUN apt update && apt install git docker --yes
+RUN apt update && apt install git docker python --yes
 
 RUN git clone -b ${GIT_SPARK} git://github.com/apache/spark.git
 

@@ -7,7 +7,11 @@ DOCKER_GIT_SPARK   ?= branch-2.3
 DOCKER_ORG         ?= hypnosapos
 DOCKER_IMAGE       ?= sparknetes
 DOCKER_TAG         ?= 2.3
-KUBE_API           ?= http://127.0.0.1:8001
+GCP_CREDENTIALS    ?= $$HOME/gcp.json
+GCP_ZONE           ?= europe-west1-b
+GCP_PROJECT_ID     ?= my_project
+GCP_CLUSTER_NAME       ?= spark
+GCP_CLUSTER_ADMIN_PASS ?= admin
 
 help: ## Show this help
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -38,20 +42,30 @@ build-pub: download-builder ## Build and push a docker image for spark to be use
                 && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) build\
                 && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) push"
 
-check-kube: ## Setup kubernetes cluster
-	kubectl proxy &
-	kubectl create serviceaccount spark
-	kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default
+sparknetes-gke-proxy: ## Setup kubernetes cluster
+	@docker run -it --rm --name $(DOCKER_IMAGE)\
+	   -v $(GCP_CREDENTIALS):/tmp/gcp.json\
+	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)\
+	   bash -c "curl https://sdk.cloud.google.com > gcloud_install.sh\
+	            && chmod +x gcloud_install.sh && ./gcloud_install.sh --disable-prompts\
+	            && source /root/google-cloud-sdk/completion.bash.inc\
+	            && source /root/google-cloud-sdk/path.bash.inc\
+	            && gcloud auth activate-service-account --key-file /tmp/gcp.json\
+	            && gcloud components install kubectl --quiet\
+                && gcloud container clusters get-credentials $(GCP_CLUSTER_NAME) --zone $(GCP_ZONE) --project $(GCP_PROJECT_ID)\
+                && kubectl config set-credentials gke_$(GCP_PROJECT_ID)_$(GCP_ZONE)_$(GCP_CLUSTER_NAME) --username=admin --password=$(GCP_CLUSTER_ADMIN_PASS)\
+	            && kubectl create serviceaccount spark\
+                && kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default\
+                && kubectl proxy"
 
 basic-example: ## Launch basic example
-	@docker run -it --network host\
-	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)\
+	@docker exec -it --rm $(DOCKER_IMAGE)\
 	   bash -c "./bin/spark-submit\
-                --master k8s://$(KUBE_API)\
+                --master k8s://http://127.0.0.1:8001\
                 --deploy-mode cluster\
                 --name spark-pi\
                 --class org.apache.spark.examples.SparkPi\
-                --conf spark.executor.instances=3\
-                --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
-                --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+                --conf spark.executor.instances=5\
+                --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG)\
+                --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark\
     	        local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
