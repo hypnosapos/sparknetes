@@ -56,9 +56,7 @@ sparknetes-gke-proxy: ## Setup kubernetes cluster
                 && kubectl config set-credentials gke_$(GCP_PROJECT_ID)_$(GCP_ZONE)_$(GCP_CLUSTER_NAME) --username=admin --password=$(GCP_CLUSTER_ADMIN_PASS)\
 	            && kubectl create serviceaccount spark\
                 && kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default\
-                && curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh\
-				&& chmod 700 get_helm.sh\
-				&& ./get_helm.sh\
+                && curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash\
 				&& kubectl -n kube-system create sa tiller\
 				&& kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller\
 				&& helm init --wait --service-account tiller\

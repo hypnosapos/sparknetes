@@ -60,3 +60,7 @@ Container name: spark-kubernetes-driver
 	 Exit code: 0
 2018-05-27 14:00:16 INFO  Client:54 - Application spark-pi finished.
 ```
+
+## TODO
+
+- [ ] Check HDFS and data locallity based on https://databricks.com/session/hdfs-on-kubernetes-lessons-learned
