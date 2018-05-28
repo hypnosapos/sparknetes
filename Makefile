@@ -1,4 +1,4 @@
-.PHONY: help build-builder pub-builder download-builder build-pub basic-example
+.PHONY: help build-builder pub-builder download-builder build-pub sparknetes-gke-proxy basic-example
 .DEFAULT_GOAL := help
 
 DOCKER_MVN_VERSION ?= 3.5.3
@@ -56,10 +56,16 @@ sparknetes-gke-proxy: ## Setup kubernetes cluster
                 && kubectl config set-credentials gke_$(GCP_PROJECT_ID)_$(GCP_ZONE)_$(GCP_CLUSTER_NAME) --username=admin --password=$(GCP_CLUSTER_ADMIN_PASS)\
 	            && kubectl create serviceaccount spark\
                 && kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default\
+                && curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh\
+				&& chmod 700 get_helm.sh\
+				&& ./get_helm.sh\
+				&& kubectl -n kube-system create sa tiller\
+				&& kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller\
+				&& helm init --wait --service-account tiller\
                 && kubectl proxy"
 
 basic-example: ## Launch basic example
-	@docker exec -it --rm $(DOCKER_IMAGE)\
+	@docker exec $(DOCKER_IMAGE)\
 	   bash -c "./bin/spark-submit\
                 --master k8s://http://127.0.0.1:8001\
                 --deploy-mode cluster\
@@ -69,3 +75,18 @@ basic-example: ## Launch basic example
                 --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG)\
                 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark\
     	        local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+
+ml-example: ## Launch ml example
+	@docker exec $(DOCKER_IMAGE)\
+	   bash -c "./bin/spark-submit\
+                --master k8s://http://127.0.0.1:8001\
+                --deploy-mode cluster\
+                --name spark-ml-LR\
+                --class org.apache.spark.examples.SparkLR\
+                --conf spark.executor.instances=5\
+                --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG)\
+                --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark\
+    	        local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+
+# hdfs-example: ## Example with HDSF as data source
+# TODO: https://databricks.com/session/hdfs-on-kubernetes-lessons-learned
