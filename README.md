@@ -49,7 +49,7 @@ PID                 USER                TIME                COMMAND
 9422                root                0:00                kubectl proxy
 ```
 
-If everything is ok then let's run examples:
+Let's run examples:
 
 ```bash
 make basic-example
@@ -59,7 +59,7 @@ make basic-example
 make ml-example
 ```
 
-If it run succesffully the output of the spark submit command should be like this:
+If it run successffully, spark submit command should outline something like this:
 ```
 2018-05-27 14:00:16 INFO  LoggingPodStatusWatcherImpl:54 - State changed, new state:
 	 pod name: spark-pi-63ba1a53bc663d728936c24c91fb339b-driver
