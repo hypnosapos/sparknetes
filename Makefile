@@ -1,4 +1,4 @@
-.PHONY: help build-builder pub-builder download-builder build-pub sparknetes-gke-proxy basic-example
+.PHONY: help clean sparknetes-build sparknetes-gke-build spark-images sparknetes-gke sparknetes-gke-bootstrap sparknetes-gke-proxy basic-example ml-example
 .DEFAULT_GOAL := help
 
 DOCKER_MVN_VERSION ?= 3.5.3
@@ -18,49 +18,46 @@ help: ## Show this help
 
 clean:
 	@docker rm -f $$(docker ps -a -f "ancestor=$(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)" --format '{{.Names}}') > /dev/null 2>&1 || echo "No containers for ancestor $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)"
-	@docker rm -f $$(docker ps -a -f "ancestor=$(DOCKER_ORG)/spark:$(DOCKER_TAG)" --format '{{.Names}}') > /dev/null 2>&1 || echo "No containers for ancestor $(DOCKER_ORG)/spark:$(DOCKER_TAG)"
+	@docker rm -f $$(docker ps -a -f "ancestor=$(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG)" --format '{{.Names}}') > /dev/null 2>&1 || echo "No containers for ancestor $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG)"
 	@docker rmi -f $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) > /dev/null 2>&1 || echo "No images of $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)"
-	@docker rmi -f $(DOCKER_ORG)/spark:$(DOCKER_TAG) > /dev/null 2>&1 || echo "No images of $(DOCKER_ORG)/spark:$(DOCKER_TAG)"
+	@docker rmi -f $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG) > /dev/null 2>&1 || echo "No images of $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG)"
 
-build-builder: ## Build the docker image of builder
-	@docker build --build-arg MVN_VERSION=$(DOCKER_MVN_VERSION)\
-	  --build-arg JDK_VERSION=$(DOCKER_JDK_VERSION)\
-	  --build-arg GIT_SPARK=$(DOCKER_GIT_SPARK)\
+sparkenetes-build: ## Build the docker image of builder
+	@docker build \
+	  --build-arg MVN_VERSION=$(DOCKER_MVN_VERSION) \
+	  --build-arg JDK_VERSION=$(DOCKER_JDK_VERSION) \
+	  --build-arg GIT_SPARK=$(DOCKER_GIT_SPARK) \
 	  -t $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) .
 
-pub-builder: ## Push docker image of sparknetes builder
-	@docker login && docker push $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)
+sparknetes-gke-build: ## Build the docker image of builder with gke support
+	@docker build \
+	  --build-arg SPARKENETES_VERSION=$(DOCKER_TAG) \
+	  -t $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG) -f Dockerfile_gke .
 
-download-builder: ## Download a pre-built builder
+spark-images: ## Build and push a docker image for spark to be used on kubernetes deployments
 	@docker pull $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)
-
-build-pub: download-builder ## Build and push a docker image for spark to be used on kubernetes deployment
-	docker run -it --rm\
+	@docker run -it --rm\
 	   -v /var/run/docker.sock:/var/run/docker.sock\
 	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)\
 	   bash -c "docker login\
                 && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) build\
                 && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) push"
 
-sparknetes-gke-proxy: ## Setup kubernetes cluster
-	@docker run -it --rm --name $(DOCKER_IMAGE)\
-	   -v $(GCP_CREDENTIALS):/tmp/gcp.json\
-	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)\
-	   bash -c "curl https://sdk.cloud.google.com > gcloud_install.sh\
-	            && chmod +x gcloud_install.sh && ./gcloud_install.sh --disable-prompts\
-	            && source /root/google-cloud-sdk/completion.bash.inc\
-	            && source /root/google-cloud-sdk/path.bash.inc\
-	            && gcloud auth activate-service-account --key-file /tmp/gcp.json\
-	            && gcloud components install kubectl --quiet\
-                && gcloud container clusters get-credentials $(GCP_CLUSTER_NAME) --zone $(GCP_ZONE) --project $(GCP_PROJECT_ID)\
-                && kubectl config set-credentials gke_$(GCP_PROJECT_ID)_$(GCP_ZONE)_$(GCP_CLUSTER_NAME) --username=admin --password=$(GCP_CLUSTER_ADMIN_PASS)\
-	            && kubectl create serviceaccount spark\
-                && kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default\
-                && curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash\
-				&& kubectl -n kube-system create sa tiller\
-				&& kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller\
-				&& helm init --wait --service-account tiller\
-                && kubectl proxy"
+sparknetes-gke: ## Run a sparknetes container
+	@docker run -t --rm --name $(DOCKER_IMAGE) \
+	   -v $(GCP_CREDENTIALS):/tmp/gcp.json \
+	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) \
+	   bash
+	@docker exec $(DOCKER_IMAGE) ./entry.sh
+
+sparknetes-gke-bootstrap: ## Setup kubernetes cluster for spark examples
+	@docker exec $(DOCKER_IMAGE) \
+	   bash -c "kubectl create serviceaccount spark \
+                kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default"
+
+sparknetes-gke-proxy: ## Run kubectl proxy on sparknetes container
+	@docker exec -it $(DOCKER_IMAGE) \
+	   bash -c "kubectl proxy"
 
 basic-example: ## Launch basic example
 	@docker exec $(DOCKER_IMAGE)\

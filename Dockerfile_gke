@@ -1,0 +1,24 @@
+ARG SPARKNETES_VERSION='2.3'
+
+FROM hypnosapos/sparknetes:${SPARKNETES_VERSION}
+
+ENV GCP_CREDS_FILE=/tmp/gcp.json
+ENV GCP_CLUSTER_NAME=spark
+ENV GCP_ZONE='europe-west1-b'
+ENV GCP_PROJECT_ID=myProject
+ENV GCP_CLUSTER_ADMIN_PASS=secret
+
+# Install gcloud sdk
+RUN curl https://sdk.cloud.google.com > gcloud_install.sh \
+	&& chmod +x gcloud_install.sh \
+	&& ./gcloud_install.sh --disable-prompts \
+	&& source /root/google-cloud-sdk/completion.bash.inc \
+	&& source /root/google-cloud-sdk/path.bash.inc
+
+# Installing kubectl
+RUN gcloud components install kubectl --quiet
+
+# Install helm
+RUN curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+
+ADD entry.sh ./
