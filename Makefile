@@ -44,8 +44,8 @@ spark-images: ## Build and push a docker image for spark to be used on kubernete
 	@docker pull $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)
 	@docker run -it --rm\
 	   -v /var/run/docker.sock:/var/run/docker.sock\
-	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)\
-	   bash -c "docker login\
+	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) \
+	   bash -c "docker login -u $$DOCKER_USERNAME -p $$DOCKER_PASSWORD \
                 && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) build\
                 && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) push"
 
