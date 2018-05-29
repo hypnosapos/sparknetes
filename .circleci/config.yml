@@ -12,6 +12,10 @@ jobs:
         command: |
           printf 'y' | docker login -u=${DOCKER_USERNAME} -p=${DOCKER_PASSWORD}
     - run:
+        name: Install essentials
+        command: |
+          apk add --no-cache --virtual .build-deps make gcc
+    - run:
         name: build and publish sparknetes docker image
         command: |
           make sparknetes-build sparknetes-push
