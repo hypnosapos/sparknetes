@@ -1,9 +1,9 @@
 # Sparknetes
 [![Build status](https://circleci.com/gh/hypnosapos/sparknetes/tree/master.svg?style=svg)](https://circleci.com/gh/hypnosapos/sparknetes/tree/master)
-[![sparknetes Layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
-[![sparknetes Version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
-[![sparknetes-gke Layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
-[![sparknetes-gke Version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
+[![sparknetes layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
+[![sparknetes version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
+[![sparknetes-gke layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
+[![sparknetes-gke version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
 
 Spark on kubernetes. Based on official site of spark 2.3 at https://spark.apache.org/docs/2.3.0/running-on-kubernetes.html
 
@@ -16,11 +16,11 @@ In order to get base docker images to use with spark submit command we may use t
 ```bash
 make sparknetes-build sparknetes-gke-build
 ```
-> NOTE: This process takes you several minutes (~20 mins). Take a look at Makefile file to view default values and other variables.
+> NOTE: This process may take you several minutes (~20 mins, under the wood there is a maven packaging task running). Take a look at Makefile file to view default values and other variables.
 
 We've left docker images available under the dockerhub org [dockerhub/hypnosapos](https://hub.docker.com/r/hypnosapos/) (powered by CircleCI)
 
-Push your own images by:
+You could push your own images as well by:
 ```sh
 DOCKER_ORG=<your_docker_registry_org_here> make sparknetes-push sparknetes-gke-push
 ```
@@ -49,7 +49,7 @@ PID                 USER                TIME                COMMAND
 9422                root                0:00                kubectl proxy
 ```
 
-If everything is right then let's run examples:
+If everything is ok then let's run examples:
 
 ```bash
 make basic-example
@@ -59,7 +59,7 @@ make basic-example
 make ml-example
 ```
 
-If everything was well the output of the spark submit command should be like this:
+If it run succesffully the output of the spark submit command should be like this:
 ```
 2018-05-27 14:00:16 INFO  LoggingPodStatusWatcherImpl:54 - State changed, new state:
 	 pod name: spark-pi-63ba1a53bc663d728936c24c91fb339b-driver
@@ -83,4 +83,4 @@ Container name: spark-kubernetes-driver
 
 ## TODO
 
-- [ ] Check HDFS and data locallity based on https://databricks.com/session/hdfs-on-kubernetes-lessons-learned
+- [ ] Check HDFS and data locality based on https://databricks.com/session/hdfs-on-kubernetes-lessons-learned
