@@ -1,9 +1,9 @@
 # Sparknetes
-[![Build status](https://circleci.com/gh/hypnosapos/sparknetes/tree/master.svg?style=svg)](https://circleci.com/gh/hypnosapos/sparknetes/tree/master)
-[![sparknetes layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
-[![sparknetes version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
-[![sparknetes-gke layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
-[![sparknetes-gke version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
+[![Build status](https://circleci.com/gh/hypnosapos/sparknetes/tree/master.svg?style=svg "Build status")](https://circleci.com/gh/hypnosapos/sparknetes/tree/master)
+[![sparknetes layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes.svg "sparknetes layers")](https://microbadger.com/images/hypnosapos/sparknetes)
+[![sparknetes version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes.svg "sparknetes version")](https://microbadger.com/images/hypnosapos/sparknetes)
+[![sparknetes-gke layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes-gke.svg "sparknetes-gke layers")](https://microbadger.com/images/hypnosapos/sparknetes-gke)
+[![sparknetes-gke version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes-gke.svg "sparknetes-gke version")](https://microbadger.com/images/hypnosapos/sparknetes-gke)
 
 Spark on kubernetes. Based on official site of spark 2.3 at https://spark.apache.org/docs/2.3.0/running-on-kubernetes.html
 
