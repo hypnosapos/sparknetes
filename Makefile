@@ -22,7 +22,7 @@ clean:
 	@docker rmi -f $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) > /dev/null 2>&1 || echo "No images of $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)"
 	@docker rmi -f $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG) > /dev/null 2>&1 || echo "No images of $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG)"
 
-sparkenetes-build: ## Build the docker image of builder
+sparknetes-build: ## Build the docker image of builder
 	@docker build \
 	  --build-arg MVN_VERSION=$(DOCKER_MVN_VERSION) \
 	  --build-arg JDK_VERSION=$(DOCKER_JDK_VERSION) \
@@ -34,7 +34,7 @@ sparknetes-push: ## Publish sparknetes docker image
 
 sparknetes-gke-build: ## Build the docker image of builder with gke support
 	@docker build \
-	  --build-arg SPARKENETES_VERSION=$(DOCKER_TAG) \
+	  --build-arg SPARKNETES_VERSION=$(DOCKER_TAG) \
 	  -t $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG) -f Dockerfile_gke .
 
 sparknetes-gke-push: ## Publish sparknetes-gke docker image
