@@ -19,7 +19,7 @@ jobs:
         name: build and publish sparknetes docker image
         command: |
           make sparknetes-build sparknetes-push
-          DOCKER_TAG=latest sparknetes-build sparknetes-push
+          DOCKER_TAG=latest make sparknetes-build sparknetes-push
     - run:
         name: build and publish spark docker image
         command: |
