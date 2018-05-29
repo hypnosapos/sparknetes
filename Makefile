@@ -50,44 +50,49 @@ spark-images: ## Build and push a docker image for spark to be used on kubernete
                 && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) push"
 
 sparknetes-gke: ## Run a sparknetes container
-	@docker run -t --rm --name $(DOCKER_IMAGE) \
+	@docker run -it -d --name $(DOCKER_IMAGE)-gke \
 	   -v $(GCP_CREDENTIALS):/tmp/gcp.json \
-	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) \
+	   -e GCP_CREDS_FILE=/tmp/gcp.json \
+	   -e GCP_ZONE=$(GCP_ZONE) \
+	   -e GCP_PROJECT_ID=$(GCP_PROJECT_ID) \
+	   -e GCP_CLUSTER_NAME=$(GCP_CLUSTER_NAME) \
+	   -e GCP_CLUSTER_ADMIN_PASS=$(GCP_CLUSTER_ADMIN_PASS) \
+	   $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG) \
 	   bash
-	@docker exec $(DOCKER_IMAGE) ./entry.sh
+	@docker exec $(DOCKER_IMAGE)-gke bash -l -c "./entry.sh"
 
 sparknetes-gke-bootstrap: ## Setup kubernetes cluster for spark examples
-	@docker exec $(DOCKER_IMAGE) \
-	   bash -c "kubectl create serviceaccount spark \
-                kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default"
+	@docker exec $(DOCKER_IMAGE)-gke \
+	   bash -l -c "kubectl create serviceaccount spark \
+                  && kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default"
 
 sparknetes-gke-proxy: ## Run kubectl proxy on sparknetes container
-	@docker exec -it $(DOCKER_IMAGE) \
-	   bash -c "kubectl proxy"
+	@docker exec -it $(DOCKER_IMAGE)-gke \
+	   bash -l -c "kubectl proxy"
 
 basic-example: ## Launch basic example
-	@docker exec $(DOCKER_IMAGE)\
-	   bash -c "./bin/spark-submit\
-                --master k8s://http://127.0.0.1:8001\
-                --deploy-mode cluster\
-                --name spark-pi\
-                --class org.apache.spark.examples.SparkPi\
-                --conf spark.executor.instances=5\
-                --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG)\
-                --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark\
-    	        local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+	@docker exec $(DOCKER_IMAGE)-gke \
+	   bash -l -c "./bin/spark-submit \
+                  --master k8s://http://127.0.0.1:8001 \
+                  --deploy-mode cluster \
+                  --name spark-pi \
+                  --class org.apache.spark.examples.SparkPi \
+                  --conf spark.executor.instances=3 \
+                  --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
+                  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+    	          local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
 
 ml-example: ## Launch ml example
-	@docker exec $(DOCKER_IMAGE)\
-	   bash -c "./bin/spark-submit\
-                --master k8s://http://127.0.0.1:8001\
-                --deploy-mode cluster\
-                --name spark-ml-LR\
-                --class org.apache.spark.examples.SparkLR\
-                --conf spark.executor.instances=5\
-                --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG)\
-                --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark\
-    	        local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+	@docker exec $(DOCKER_IMAGE)-gke \
+	   bash -l -c "./bin/spark-submit \
+                  --master k8s://http://127.0.0.1:8001 \
+                  --deploy-mode cluster \
+                  --name spark-ml-LR \
+                  --class org.apache.spark.examples.SparkLR \
+                  --conf spark.executor.instances=3 \
+                  --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
+                  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+    	          local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
 
 # hdfs-example: ## Example with HDSF as data source
 # TODO: https://databricks.com/session/hdfs-on-kubernetes-lessons-learned

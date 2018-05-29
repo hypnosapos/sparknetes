@@ -3,7 +3,7 @@
 set -e
 
 function activate_account {
-  [ ! -f $GCP_CREDS_FILE ] || ( echo "Required a gcp.json file with GCP credentials (set env GCP_CREDS_FILE)" && exit 1 )
+  [ ! -f $GCP_CREDS_FILE ] && echo "Required a gcp.json file with GCP credentials (set env GCP_CREDS_FILE)" && exit 1
   [ -z "$GCP_CLUSTER_NAME" ] && echo "Env variable GCP_CLUSTER_NAME not defined (the GKE cluster name)" && exit 1
   [ -z "$GCP_ZONE" ] && echo "Env variable GCP_ZONE not defined (the zone of GCP)" && exit 1
   [ -z "$GCP_PROJECT_ID" ] && echo "Env variable GCP_PROJECT_ID not defined (the id of GCP project)" && exit 1
@@ -22,4 +22,6 @@ function tiller {
     helm init --wait --service-account tiller
 }
 
-activate_account && admin_creds && tiller
+activate_account && admin_creds
+
+## [optional] tiller

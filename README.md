@@ -1,4 +1,9 @@
 # Sparknetes
+[![Build status](https://circleci.com/gh/hypnosapos/sparknetes/tree/master.svg?style=svg)](https://circleci.com/gh/hypnosapos/sparknetes/tree/master)
+[![sparknetes Layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
+[![sparknetes Version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes.svg)](https://microbadger.com/images/hypnosapos/sparknetes)
+[![sparknetes-gke Layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
+[![sparknetes-gke Version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes-gke.svg)](https://microbadger.com/images/hypnosapos/sparknetes-gke)
 
 Spark on kubernetes. Based on official site of spark 2.3 at https://spark.apache.org/docs/2.3.0/running-on-kubernetes.html
 
@@ -6,20 +11,25 @@ Tests were run over GKE service.
 
 ## Publish your docker images
 
-In order to get base docker images to use with spark submit command we may use this intermediate docker container:
+In order to get base docker images to use with spark submit command we may use this intermediate docker images:
 
 ```bash
-make build-pub
+make sparknetes-build sparknetes-gke-build
 ```
-> NOTE: Take a look at Makefile file to view default values and other variables.
+> NOTE: This process takes you several minutes (~20 mins). Take a look at Makefile file to view default values and other variables.
 
-We've left a docker image available at [dockerhub/hypnosapos/spark](https://hub.docker.com/r/hypnosapos/spark/tags/)
+We've left docker images available under the dockerhub org [dockerhub/hypnosapos](https://hub.docker.com/r/hypnosapos/) (powered by CircleCI)
+
+Push your own images by:
+```sh
+DOCKER_ORG=<your_docker_registry_org_here> make sparknetes-push sparknetes-gke-push
+```
 
 ## Launch examples
 
 Before run examples you must provide a kuberntes cluster ready for use.
 
-Til now we've try examples only over GKE service, once a cluster is ready run the "sparknetes proxy" on this way:
+Til now we've try examples only by GKE service, once a cluster is ready run the "sparknetes-gke*" subcommands with the suitable values of GCP variables:
 
 ```bash
 GCP_ZONE=<gcp_zone> \
@@ -28,15 +38,25 @@ GCP_CLUSTER_NAME=spark \
 GCP_CLUSTER_ADMIN_PASS=******** \
 GCP_CREDENTIALS=<path_file_gcp.json> \
 GCP_CLUSTER_ADMIN_PASS=*********** \
-make sparknetes-gke-proxy
+make sparknetes-gke sparknetes-gke-bootstrap sparknetes-gke-proxy
 ```
 
-This container will be use to launch examples through the internel proxy URL (http://127.0.0.1:8001)
+This container will be use to launch examples through the internel proxy URL (http://127.0.0.1:8001). Make sure that proxy is alive by:
+```sh
+docker top sparknetes-gke
+PID                 USER                TIME                COMMAND
+8980                root                0:00                bash
+9422                root                0:00                kubectl proxy
+```
 
-Let's run a basic example:
+If everything is right then let's run examples:
 
 ```bash
 make basic-example
+```
+
+```bash
+make ml-example
 ```
 
 If everything was well the output of the spark submit command should be like this:
