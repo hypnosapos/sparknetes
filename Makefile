@@ -29,10 +29,16 @@ sparkenetes-build: ## Build the docker image of builder
 	  --build-arg GIT_SPARK=$(DOCKER_GIT_SPARK) \
 	  -t $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) .
 
+sparknetes-push: ## Publish sparknetes docker image
+	@docker push $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)
+
 sparknetes-gke-build: ## Build the docker image of builder with gke support
 	@docker build \
 	  --build-arg SPARKENETES_VERSION=$(DOCKER_TAG) \
 	  -t $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG) -f Dockerfile_gke .
+
+sparknetes-gke-push: ## Publish sparknetes-gke docker image
+	@docker push $(DOCKER_ORG)/$(DOCKER_IMAGE)-gke:$(DOCKER_TAG)
 
 spark-images: ## Build and push a docker image for spark to be used on kubernetes deployments
 	@docker pull $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG)
