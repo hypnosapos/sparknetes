@@ -25,6 +25,21 @@ You could push your own images as well by:
 DOCKER_ORG=<your_docker_registry_org_here> make sparknetes-push sparknetes-gke-push
 ```
 
+## Kubernetes cluster
+
+We've tried pocs on GKE service. This is the command to get up a cluster via gcloud sdk:
+```sh
+gcloud beta container --project "<you_gcp_project>" clusters create "spark" --zone "europe-west1-b" --username "admin" --cluster-version "1.8.10-gke.0" \
+--machine-type "n1-standard-4" --image-type "COS" --disk-type "pd-standard" --disk-size "100" \
+--scopes "https://www.googleapis.com/auth/compute","https://www.googleapis.com/auth/devstorage.read_only",\
+"https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol",\
+"https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" \
+--num-nodes "5" --enable-cloud-logging --enable-cloud-monitoring --network "default" \
+--subnetwork "default" --addons HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard --enable-autorepair
+```
+
+If you prefer use another cluster on other cloud or infrastructure (even local station), it's up to you.
+
 ## Launch examples
 
 Before run examples you must provide a kuberntes cluster ready for use.
