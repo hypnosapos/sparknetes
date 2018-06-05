@@ -1,4 +1,4 @@
-.PHONY: help clean sparknetes-build sparknetes-gke-build spark-images sparknetes-gke sparknetes-gke-bootstrap sparknetes-gke-proxy basic-example ml-example
+.PHONY: help clean sparknetes-build sparknetes-gke-build spark-images sparknetes-gke sparknetes-gke-bootstrap sparknetes-gke-proxy load_gcp_secret basic-example ml-example gcs-example
 .DEFAULT_GOAL := help
 
 DOCKER_MVN_VERSION ?= 3.5.3
@@ -70,6 +70,14 @@ sparknetes-gke-proxy: ## Run kubectl proxy on sparknetes container
 	@docker exec -it $(DOCKER_IMAGE)-gke \
 	   bash -l -c "kubectl proxy"
 
+sparknetes-gke-clean: ## Clean sparknetes examples
+	@docker exec $(DOCKER_IMAGE)-gke \
+	  bash -l -c "kubectl delete all -l sparknetes=true"
+
+load_gcp_secret:
+	@docker exec $(DOCKER_IMAGE)-gke \
+       bash -l -c "kubectl create secret generic gcloud-creds --from-file=gcp.json=/tmp/gcp.json"
+
 basic-example: ## Launch basic example
 	@docker exec $(DOCKER_IMAGE)-gke \
 	   bash -l -c "./bin/spark-submit \
@@ -80,6 +88,7 @@ basic-example: ## Launch basic example
                   --conf spark.executor.instances=3 \
                   --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
                   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+                  --conf spark.kubernetes.driver.label.sparknetes=true \
     	          local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
 
 ml-example: ## Launch ml example
@@ -92,7 +101,25 @@ ml-example: ## Launch ml example
                   --conf spark.executor.instances=3 \
                   --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
                   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+                  --conf spark.kubernetes.driver.label.sparknetes=true \
     	          local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+
+gcs-example: ## Launch an example using GCS as data source
+	@docker exec $(DOCKER_IMAGE)-gke \
+	   bash -l -c "./bin/spark-submit \
+                  --master k8s://http://127.0.0.1:8001 \
+                  --deploy-mode cluster \
+                  --name spark-test-set \
+                  --class <your_class> \
+                  --conf spark.executor.instances=5 \
+                  --jars https://storage.googleapis.com/sparknetes/libs/gcs-connector-1.6.6-hadoop2.jar \
+                  --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
+                  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+                  --conf spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/gcp.json\
+                  --conf spark.kubernetes.driver.secrets.gcloud-creds=/tmp/gcp \
+                  --conf spark.kubernetes.driver.label.sparknetes=true \
+    	          https://storage.googleapis.com/sparknetes/<yourremote-jar> gs://<your_bucket>"
+
 
 # hdfs-example: ## Example with HDSF as data source
 # TODO: https://databricks.com/session/hdfs-on-kubernetes-lessons-learned
