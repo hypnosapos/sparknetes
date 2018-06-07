@@ -51,6 +51,7 @@ spark-images: ## Build and push a docker image for spark to be used on kubernete
 
 sparknetes-gke: ## Run a sparknetes container
 	@docker run -it -d --name $(DOCKER_IMAGE)-gke \
+	   -p 8001:8001 \
 	   -v $(GCP_CREDENTIALS):/tmp/gcp.json \
 	   -e GCP_CREDS_FILE=/tmp/gcp.json \
 	   -e GCP_ZONE=$(GCP_ZONE) \
@@ -68,7 +69,7 @@ sparknetes-gke-bootstrap: ## Setup kubernetes cluster for spark examples
 
 sparknetes-gke-proxy: ## Run kubectl proxy on sparknetes container
 	@docker exec -it $(DOCKER_IMAGE)-gke \
-	   bash -l -c "kubectl proxy"
+	   bash -l -c "kubectl proxy --address='0.0.0.0'"
 
 sparknetes-gke-clean: ## Clean sparknetes examples
 	@docker exec $(DOCKER_IMAGE)-gke \
