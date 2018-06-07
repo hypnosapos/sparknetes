@@ -52,7 +52,6 @@ GCP_PROJECT_ID=<gcp_project_id> \
 GCP_CLUSTER_NAME=spark \
 GCP_CLUSTER_ADMIN_PASS=******** \
 GCP_CREDENTIALS=<path_file_gcp.json> \
-GCP_CLUSTER_ADMIN_PASS=*********** \
 make sparknetes-gke sparknetes-gke-bootstrap sparknetes-gke-proxy
 ```
 
