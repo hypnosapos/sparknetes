@@ -116,7 +116,10 @@ gcs-example: ## Launch an example using GCS as data source
                   --jars https://storage.googleapis.com/sparknetes/libs/gcs-connector-1.6.6-hadoop2.jar \
                   --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
                   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
-                  --conf spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/gcp.json\
+                  --conf spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/gcp.json \
+                  --conf spark.executor.memory=4g \
+                  --conf spark.kubernetes.executor.limit.cores=3 \
+                  --conf spark.executor.cores=3 \
                   --conf spark.kubernetes.driver.secrets.gcloud-creds=/tmp/gcp \
                   --conf spark.kubernetes.driver.label.sparknetes=true \
     	          https://storage.googleapis.com/sparknetes/<yourremote-jar> gs://<your_bucket>"
