@@ -2,78 +2,79 @@
 [![Build status](https://circleci.com/gh/hypnosapos/sparknetes/tree/master.svg?style=svg "Build status")](https://circleci.com/gh/hypnosapos/sparknetes/tree/master)
 [![sparknetes layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes.svg "sparknetes layers")](https://microbadger.com/images/hypnosapos/sparknetes)
 [![sparknetes version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes.svg "sparknetes version")](https://microbadger.com/images/hypnosapos/sparknetes)
-[![sparknetes-gke layers](https://images.microbadger.com/badges/image/hypnosapos/sparknetes-gke.svg "sparknetes-gke layers")](https://microbadger.com/images/hypnosapos/sparknetes-gke)
-[![sparknetes-gke version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes-gke.svg "sparknetes-gke version")](https://microbadger.com/images/hypnosapos/sparknetes-gke)
+[![spark layers](https://images.microbadger.com/badges/image/hypnosapos/spark.svg "spark layers")](https://microbadger.com/images/hypnosapos/spark)
+[![spark version](https://images.microbadger.com/badges/version/hypnosapos/spark.svg "spark version")](https://microbadger.com/images/hypnosapos/spark)
 
-Spark on kubernetes. Based on official site of spark 2.3 at https://spark.apache.org/docs/2.3.0/running-on-kubernetes.html
+Spark on kubernetes. Based on official documentation of spark 2.3 at https://spark.apache.org/docs/2.3.0/running-on-kubernetes.html
 
-Tests were run over GKE service.
+## Requirerements:
 
-## Publish your docker images
+- Docker.
+- Kubernetes 1.8+ (examples were tested on GKE service).
 
-In order to get base docker images to use with spark submit command we may use this intermediate docker images:
+## Spark docker images
 
-```bash
-make sparknetes-build sparknetes-gke-build
+In order to get base docker images to use with `spark-submit` command we may use this intermediate docker image:
+
+```sh
+make sparknetes-build spark-images
 ```
-> NOTE: This process may take you several minutes (~20 mins, under the wood there is a maven packaging task running). Take a look at Makefile file to view default values and other variables.
+> NOTE: This process may take you several minutes (~20 mins, under the wood there is a maven packaging task running).
+ Take a look at Makefile file to view default values and other variables.
 
-We've left docker images available under the dockerhub org [dockerhub/hypnosapos](https://hub.docker.com/r/hypnosapos/) (powered by CircleCI)
+We've left docker images available under the dockerhub org [dockerhub/hypnosapos](https://hub.docker.com/r/hypnosapos/) (sparknetes and spark images)
 
 You could push your own images as well by:
 ```sh
-DOCKER_ORG=<your_docker_registry_org_here> make sparknetes-push sparknetes-gke-push
+DOCKER_ORG=<registry_org> DOCKER_USERNAME=<registry_user> DOCKER_PASSWORD=<registry_pass> make sparknetes-build spark-images
 ```
 
 ## Kubernetes cluster
 
-We've tried pocs on GKE service. This is the command to get up a cluster via gcloud sdk:
+We've tried examples on GKE service. This is the command to get up a kubernetes cluster, ready to be used for spark deployments:
+
 ```sh
-gcloud beta container --project "<you_gcp_project>" clusters create "spark" --zone "europe-west1-b" --username "admin" --cluster-version "1.8.10-gke.0" \
---machine-type "n1-standard-4" --image-type "COS" --disk-type "pd-standard" --disk-size "100" \
---scopes "https://www.googleapis.com/auth/compute","https://www.googleapis.com/auth/devstorage.read_only",\
-"https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol",\
-"https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" \
---num-nodes "5" --enable-cloud-logging --enable-cloud-monitoring --network "default" \
---subnetwork "default" --addons HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard --enable-autorepair
+export GCP_CREDENTIALS=<path_file_gcp.json>
+export GCP_ZONE=<gcp_zone>
+export GCP_PROJECT_ID=<gcp_project_id>
+export GKE_CLUSTER_NAME=spark
+
+make gke-bastion gke-create-cluster gke-spark-bootstrap gke-proxy
 ```
 
-If you prefer use another cluster on other cloud or infrastructure (even local station), it's up to you.
+If you prefer to use another cluster on other cloud or infrastructure (even local station), it's up to you.
 
-## Launch examples
+For those people who want to use the kubernetes dashboard:
 
-Before run examples you must provide a kuberntes cluster ready for use.
-
-Til now we've try examples only by GKE service, once a cluster is ready run the "sparknetes-gke*" subcommands with the suitable values of GCP variables:
-
-```bash
-GCP_ZONE=<gcp_zone> \
-GCP_PROJECT_ID=<gcp_project_id> \
-GCP_CLUSTER_NAME=spark \
-GCP_CLUSTER_ADMIN_PASS=******** \
-GCP_CREDENTIALS=<path_file_gcp.json> \
-make sparknetes-gke sparknetes-gke-bootstrap sparknetes-gke-proxy
-```
-
-This container will be use to launch examples through the internel proxy URL (http://127.0.0.1:8001). Make sure that proxy is alive by:
 ```sh
-docker top sparknetes-gke
-PID                 USER                TIME                COMMAND
-8980                root                0:00                bash
-9422                root                0:00                kubectl proxy
+make gke-ui-login-skip gke-ui
+```
+> NOTE: `gke-ui-login-skip` is a trick to add cluster admin credentials to default dashboard account (skipping login page)
+
+## Launch basic examples
+
+![Spark on kubernetes](sparknetes_basic.png)
+
+As the picture above show you, `spark-submit` commands will be thrown from a pod of a kubernetes job.
+
+First example is the well known SparkPi:
+```sh
+make spark-basic-example
 ```
 
-Let's run examples:
-
-```bash
-make basic-example
+Second one is an example of a linear regresion:
+```sh
+make spark-ml-example
 ```
 
-```bash
-make ml-example
-```
+Logs of docker where spark-submit command was launched can be seen on this way:
 
-If it run successffully, spark submit command should outline something like this:
+```sh
+JOB_NAME=<job_name> make gke-job-logs
+```
+> NOTE: <job-name> is the name of the example with the suffix '-job' intead of '-example' (i.e. "spark-ml-job" instead of "spark-ml-example")
+
+If it run successffully, spark-submit command should outline something like this:
 ```
 2018-05-27 14:00:16 INFO  LoggingPodStatusWatcherImpl:54 - State changed, new state:
 	 pod name: spark-pi-63ba1a53bc663d728936c24c91fb339b-driver
@@ -95,6 +96,32 @@ Container name: spark-kubernetes-driver
 2018-05-27 14:00:16 INFO  Client:54 - Application spark-pi finished.
 ```
 
-## TODO
+## GCS example
 
-- [ ] Check HDFS and data locality based on https://databricks.com/session/hdfs-on-kubernetes-lessons-learned
+![GCS and Spark on kubernetes](sparknetes_gcs.png)
+
+This example uses a remote dependency for gcs connector and the GCP credentials to authenticate with internal metadata server.
+We've used a private jar and class (provide your values directly in Makefile file), but esentially you only need update your code to use `gs://` instead the typical `hdfs://` scheme for data input/output.
+
+```sh
+make example-gcs
+```
+
+## Cleaning
+
+### Remove all spark resources on kubernetes cluster
+
+```sh
+make gke-spark-clean
+```
+
+### Remove everything
+
+```sh
+make gke-destroy-cluster
+```
+
+## TODO
+- [ ] Benchmarks.
+- [ ] Check HDFS and data locality based on https://databricks.com/session/hdfs-on-kubernetes-lessons-learned.
+- [ ] BigDL examples, updating container to spark 2.3 instead of 2.2.

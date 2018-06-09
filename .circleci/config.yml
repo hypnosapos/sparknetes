@@ -24,11 +24,7 @@ jobs:
         name: build and publish spark docker image
         command: |
           make spark-images
-    - run:
-        name: build and publish sparknetes-gke docker image
-        command: |
-          make sparknetes-gke-build sparknetes-gke-push
-          DOCKER_TAG=latest make sparknetes-gke-build sparknetes-gke-push
+          DOCKER_TAG=latest make spark-images
 
 workflows:
   version: 2
