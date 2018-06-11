@@ -44,8 +44,8 @@ spark-image: ## Build and push a docker image for spark pods.
 	   -v /var/run/docker.sock:/var/run/docker.sock\
 	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) \
 	   bash -c "docker login -u $$DOCKER_USERNAME -p $$DOCKER_PASSWORD \
-                && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) build\
-                && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) push"
+	            && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) build\
+	            && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) push"
 
 gke-bastion: ## Run a gke-bastion container.
 	@docker run -it -d --name gke-bastion \
@@ -62,7 +62,7 @@ gke-create-cluster: ## Create a kubernetes cluster on GKE.
 	   sh -c "gcloud container --project $(GCP_PROJECT_ID) clusters create $(GKE_CLUSTER_NAME) --zone "$(GCP_ZONE)" \
 	          --username "admin" --cluster-version "1.8.10-gke.0" --machine-type "n1-standard-4" --image-type "COS" \
 	          --disk-type "pd-standard" --disk-size "100" \
-              --scopes "compute-rw","storage-rw","logging-write","monitoring","service-control","service-management","trace" \
+	          --scopes "compute-rw","storage-rw","logging-write","monitoring","service-control","service-management","trace" \
 	          --num-nodes "5" --enable-cloud-logging --enable-cloud-monitoring --network "default" \
 	          --subnetwork "default" --addons HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard \
 	          && gcloud container clusters get-credentials $(GKE_CLUSTER_NAME) --zone "$(GCP_ZONE)" --project $(GCP_PROJECT_ID)"
@@ -105,28 +105,28 @@ spark-basic-example: ## Launch basic example (SparkPi) from a kubernetes pod.
 	  sh -c "kubectl run spark-basic-job -l sparknetes=true --image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) --restart=OnFailure \
 	       --serviceaccount=spark --command -- /opt/spark/bin/spark-submit \
 	       --master k8s://https://kubernetes.default.svc.cluster.local \
-           --deploy-mode cluster \
-           --name spark-basic-pi \
-           --class org.apache.spark.examples.SparkPi \
-           --conf spark.executor.instances=3 \
-           --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
-           --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
-           --conf spark.kubernetes.driver.label.sparknetes=true \
-    	   local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+	       --deploy-mode cluster \
+	       --name spark-basic-pi \
+	       --class org.apache.spark.examples.SparkPi \
+	       --conf spark.executor.instances=3 \
+	       --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
+	       --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+	       --conf spark.kubernetes.driver.label.sparknetes=true \
+	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
 
 spark-ml-example: ## Launch ml example from a kubernetes pod.
 	@docker exec gke-bastion \
-	sh -c "kubectl run spark-ml-job -l sparknetes=true --image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) --restart=OnFailure \
+	  sh -c "kubectl run spark-ml-job -l sparknetes=true --image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) --restart=OnFailure \
 	       --serviceaccount=spark --command -- /opt/spark/bin/spark-submit \
 	       --master k8s://https://kubernetes.default.svc.cluster.local \
-           --deploy-mode cluster \
-           --name spark-ml-LR \
-           --class org.apache.spark.examples.SparkLR \
-           --conf spark.executor.instances=3 \
-           --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
-           --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
-           --conf spark.kubernetes.driver.label.sparknetes=true \
-    	   local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+	       --deploy-mode cluster \
+	       --name spark-ml-LR \
+	       --class org.apache.spark.examples.SparkLR \
+	       --conf spark.executor.instances=3 \
+	       --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
+	       --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+	       --conf spark.kubernetes.driver.label.sparknetes=true \
+	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
 
 spark-gcs-example: ## Launch an example with GCS as data source. Adjust class and other confs
 	@docker exec gke-bastion \
