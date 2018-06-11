@@ -67,12 +67,12 @@ Second one is an example of a linear regresion:
 make spark-ml-example
 ```
 
-Logs of docker where spark-submit command was launched can be seen on this way:
+Logs of job that run spark-submit command was launched can be seen on this way:
 
 ```sh
 JOB_NAME=<job_name> make gke-job-logs
 ```
-> NOTE: <job-name> is the name of the example with the suffix '-job' intead of '-example' (i.e. "spark-ml-job" instead of "spark-ml-example")
+> NOTE: <job-name> is the name of the example with the suffix '-job' instead of '-example' (i.e. "spark-ml-job" instead of "spark-ml-example")
 
 If it run successffully, spark-submit command should outline something like this:
 ```
@@ -101,7 +101,7 @@ Container name: spark-kubernetes-driver
 ![GCS and Spark on kubernetes](sparknetes_gcs.png)
 
 This example uses a remote dependency for gcs connector and the GCP credentials to authenticate with internal metadata server.
-We've used a private jar and class (provide your values directly in Makefile file), but esentially you only need update your code to use `gs://` instead the typical `hdfs://` scheme for data input/output.
+We've used a private jar and class (provide your values directly in Makefile file), but essentially you only need update your code to use `gs://` instead the typical `hdfs://` scheme for data input/output.
 
 ```sh
 make example-gcs
@@ -124,4 +124,4 @@ make gke-destroy-cluster
 ## TODO
 - [ ] Benchmarks.
 - [ ] Check HDFS and data locality based on https://databricks.com/session/hdfs-on-kubernetes-lessons-learned.
-- [ ] BigDL examples, updating container to spark 2.3 instead of 2.2.
+- [ ] BigDL examples, update to Spark 2.3.
