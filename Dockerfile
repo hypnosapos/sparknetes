@@ -7,9 +7,11 @@ ARG GIT_SPARK='branch-2.3'
 
 RUN apt update && apt install git docker python --yes
 
-RUN git clone -b ${GIT_SPARK} git://github.com/apache/spark.git
+RUN git clone git://github.com/apache/spark.git
 
 WORKDIR spark
+
+RUN git checkout ${GIT_SPARK}
 
 RUN curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
 
