@@ -4,7 +4,7 @@
 [![sparknetes version](https://images.microbadger.com/badges/version/hypnosapos/sparknetes.svg "sparknetes version")](https://microbadger.com/images/hypnosapos/sparknetes)
 [![spark layers](https://images.microbadger.com/badges/image/hypnosapos/spark.svg "spark layers")](https://microbadger.com/images/hypnosapos/spark)
 
-Spark on kubernetes. Based on [official documentation of spark 2.3](https://spark.apache.org/docs/2.3.0/running-on-kubernetes.html)
+Spark on kubernetes. Based on [official documentation of spark 2.4](https://spark.apache.org/docs/2.4.0/running-on-kubernetes.html)
 
 ## Requirerements:
 
