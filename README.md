@@ -38,7 +38,6 @@ When we've got our kubernetes cluster ready (for instance with `GKE_CLUSTER_NAME
 
 ```bash
 export GKE_CLUSTER_NAME=spark
-
 make gke-spark-bootstrap
 ```
 
@@ -71,11 +70,11 @@ If it run successffully, spark-submit command should outline something like this
 	 volumes: spark-token-92jw7
 	 node name: gke-spark-default-pool-ba0e670d-w989
 	 start time: 2018-05-27T14:00:13Z
-	 container images: hypnosapos/spark:2.3
+	 container images: hypnosapos/spark:2.4
 	 phase: Succeeded
 2018-05-27 14:00:16 INFO  LoggingPodStatusWatcherImpl:54 - Container final statuses:
 Container name: spark-kubernetes-driver
-	 Container image: hypnosapos/spark:2.3
+	 Container image: hypnosapos/spark:2.4
 	 Container state: Terminated
 	 Exit code: 0
 2018-05-27 14:00:16 INFO  Client:54 - Application spark-pi finished.
@@ -101,12 +100,15 @@ In order to view the driver UI through a public load balance service:
 ```bash
 export SPARK_APP_NAME=spark-gcs
 make gke-spark-expose-ui
+```
 
-# Wait for a external ip 
+```bash
 make gke-spark-open-ui
 ```
 
-![Driver UI on kubernetes](sparknetes_driver_ui.png)
+![Driver UI - Stages](sparknetes_stages.png)
+
+![Driver UI - Executors](sparknetes_executors.png)
 
 ## Cleaning
 
@@ -118,5 +120,4 @@ make gke-spark-clean
 
 ## TODO
 - [ ] Benchmarks.
-- [ ] Check HDFS and data locality based on https://databricks.com/session/hdfs-on-kubernetes-lessons-learned.
-- [ ] BigDL examples, update to Spark 2.3.
+- [ ] BigDL examples and analytics zoo.
