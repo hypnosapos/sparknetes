@@ -1,11 +1,16 @@
 .DEFAULT_GOAL := help
 
-DOCKER_MVN_VERSION ?= 3.5.3
+DOCKER_MVN_VERSION ?= 3.5.4
 DOCKER_JDK_VERSION ?= 8
-DOCKER_GIT_SPARK   ?= branch-2.3
+DOCKER_GIT_SPARK   ?= branch-2.4
 DOCKER_ORG         ?= hypnosapos
 DOCKER_IMAGE       ?= sparknetes
-DOCKER_TAG         ?= 2.3
+DOCKER_TAG         ?= 2.4
+
+DOCKER_USERNAME    ?= engapa
+DOCKER_PASSWORD    ?= secretito
+
+GKE_CLUSTER_NAME   ?= spark
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Linux)
@@ -41,12 +46,12 @@ spark-image: ## Build and push a docker image for spark pods.
 	@docker run -it --rm\
 	   -v /var/run/docker.sock:/var/run/docker.sock\
 	   $(DOCKER_ORG)/$(DOCKER_IMAGE):$(DOCKER_TAG) \
-	   bash -c "docker login -u $$DOCKER_USERNAME -p $$DOCKER_PASSWORD \
+	   bash -c "docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD) \
 	            && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) build\
 	            && ./bin/docker-image-tool.sh -r docker.io/$(DOCKER_ORG) -t $(DOCKER_TAG) push"
 
 .PHONY: gke-spark-bootstrap
-gke-spark-bootstrap: ## Setup kubernetes cluster for spark examples.
+gke-spark-bootstrap: ## Setup kubernetes cluster for spark examples. Visit repo k8s-gke
 	@docker exec gke-bastion \
 	   sh -c "kubectl create serviceaccount $(GKE_CLUSTER_NAME) \
                  && kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:$(GKE_CLUSTER_NAME) --namespace=default \
@@ -75,7 +80,7 @@ spark-basic-example: ## Launch basic example (SparkPi) from a kubernetes pod.
 	       --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
 	       --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 	       --conf spark.kubernetes.driver.label.sparknetes=true \
-	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.4.1-SNAPSHOT.jar"
 
 .PHONY: spark-ml-example
 spark-ml-example: ## Launch ml example from a kubernetes pod.
@@ -90,7 +95,7 @@ spark-ml-example: ## Launch ml example from a kubernetes pod.
 	       --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
 	       --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 	       --conf spark.kubernetes.driver.label.sparknetes=true \
-	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.3.2-SNAPSHOT.jar"
+	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.4.1-SNAPSHOT.jar"
 
 .PHONY: spark-gcs-example
 spark-gcs-example: ## Launch an example with GCS as data source. Adjust class and other confs
@@ -100,7 +105,7 @@ spark-gcs-example: ## Launch an example with GCS as data source. Adjust class an
 	       --master k8s://https://kubernetes.default.svc.cluster.local \
 	       --deploy-mode cluster \
 	       --name spark-gcs \
-	       --class <your_class> \
+	       --class com.bbva.fraud.ParseOp \
 	       --conf spark.executor.instances=4 \
 	       --conf spark.ui.enabled=true \
 	       --jars https://storage.googleapis.com/sparknetes/libs/gcs-connector-1.6.6-hadoop2.jar \
@@ -112,7 +117,7 @@ spark-gcs-example: ## Launch an example with GCS as data source. Adjust class an
 	       --conf spark.executor.cores=3 \
 	       --conf spark.kubernetes.driver.secrets.gcloud-creds=/tmp/gcp \
 	       --conf spark.kubernetes.driver.label.sparknetes=true \
-	       <your_remote_jar> gs://<input_bucket> gs://<output_bucket>"
+	       https://storage.googleapis.com/sparknetes/fraud-joiner-assembly-1.1.jar gs://fraud-dataset/dataset/bkOn gs://sparknetes/fraud.parquet"
 
 .PHONY: gke-spark-expose-ui
 gke-spark-expose-ui:
@@ -127,6 +132,3 @@ gke-spark-expose-ui:
 gke-spark-open-ui:
 	$(OPEN) http://$(shell docker exec gke-bastion \
 	  sh -c "kubectl get svc $(SPARK_APP_NAME)-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"):4040
-
-# hdfs-example: ## Example with HDSF as data source
-# TODO: https://databricks.com/session/hdfs-on-kubernetes-lessons-learned
