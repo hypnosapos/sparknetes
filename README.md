@@ -14,7 +14,7 @@ Spark on kubernetes. Based on [official documentation of spark 2.4](https://spar
 
 ## Spark docker images
 
-In order to get base docker images to use with `spark-submit` command we may use this intermediate one:
+In order to get base docker images to use with the `spark-submit` command we may use this intermediate one:
 
 ```bash
 make sparknetes-build spark-images
@@ -32,7 +32,7 @@ DOCKER_ORG=<registry_org> DOCKER_USERNAME=<registry_user> DOCKER_PASSWORD=<regis
 
 ## Kubernetes cluster
 
-Examples will be tested on GKE service, [here you have instructions to create a kubernetes cluster here](https://github.com/hypnosapos/k8s-gke)).
+Examples will be tested on GKE service, [here you have instructions to create a kubernetes cluster](https://github.com/hypnosapos/k8s-gke)).
 
 When we've got our kubernetes cluster ready (for instance with `GKE_CLUSTER_NAME=spark` variable exported) we have to prepare a minimal bootstrapping operation:
 
@@ -45,7 +45,7 @@ make gke-spark-bootstrap
 
 ![Spark on kubernetes](sparknetes_basic.png)
 
-As the picture above show you, `spark-submit` commands will be thrown from a pod of a kubernetes job.
+As the picture above shows you, `spark-submit` commands will be thrown from a pod of a kubernetes job.
 
 First example is the well known SparkPi:
 ```bash
@@ -58,7 +58,7 @@ JOB_NAME=<job_name> make gke-job-logs
 ```
 > NOTE: <job-name> is the name of the example with the suffix '-job' instead of '-example' (i.e. "spark-basic-job" instead of "spark-basic-example")
 
-If it run successffully, spark-submit command should outline something like this:
+If it run successfully, spark-submit command should outline something like this:
 ```
 2018-05-27 14:00:16 INFO  LoggingPodStatusWatcherImpl:54 - State changed, new state:
 	 pod name: spark-pi-63ba1a53bc663d728936c24c91fb339b-driver
@@ -89,7 +89,7 @@ JOB_NAME=spark-ml-job make spark-ml-example gke-job-logs
 
 ![GCS and Spark on kubernetes](sparknetes_gcs.png)
 
-This example uses a remote dependency for gcs connector and the GCP credentials to authenticate with internal metadata server.
+This example uses a remote dependency for GCS connector and the GCP credentials to authenticate with internal metadata server.
 We've used a private jar and class (provide your values directly in Makefile file, quoted by marks **\< \>**), but essentially you only need update your code to use `gs://` instead the typical `hdfs://` scheme for data input/output.
 
 ```bash
