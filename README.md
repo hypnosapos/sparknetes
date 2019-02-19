@@ -110,6 +110,16 @@ make gke-spark-open-ui
 
 ![Driver UI - Executors](sparknetes_executors.png)
 
+## Using spark-k8s operator
+
+Few months ago google community published the [k8s-spark-operator](https://github.com/GoogleCloudPlatform/spark-on-k8s-operator).
+Thus, it's time to check it out:
+
+```bash
+make gke-spark-operator-install
+make gke-spark-operator-example
+```
+
 ## Cleaning
 
 Remove all spark resources on kubernetes cluster:
@@ -120,4 +130,4 @@ make gke-spark-clean
 
 ## TODO
 - [ ] Benchmarks.
-- [ ] BigDL examples and analytics zoo.
+- [ ] BigDL examples and analytics zoo use cases.

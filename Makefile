@@ -55,7 +55,7 @@ gke-spark-bootstrap: ## Setup kubernetes cluster for spark examples. Visit repo 
 	@docker exec gke-bastion \
 	   sh -c "kubectl create serviceaccount $(GKE_CLUSTER_NAME) \
                  && kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:$(GKE_CLUSTER_NAME) --namespace=default \
-                 && kubectl create secret generic gcloud-creds --from-file=gcp.json=/tmp/gcp.json"
+                 && kubectl create secret generic gcloud-creds --from-file=key.json=/tmp/gcp.json"
 
 .PHONY: gke-spark-clean
 gke-spark-clean: ## Clean spark resources on kubernetes cluster.
@@ -111,7 +111,7 @@ spark-gcs-example: ## Launch an example with GCS as data source. Adjust class an
 	       --jars https://storage.googleapis.com/sparknetes/libs/gcs-connector-1.6.6-hadoop2.jar \
 	       --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
 	       --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
-	       --conf spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/gcp.json \
+	       --conf spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/key.json \
 	       --conf spark.executor.memory=4g \
 	       --conf spark.kubernetes.executor.limit.cores=3 \
 	       --conf spark.executor.cores=3 \
@@ -120,7 +120,7 @@ spark-gcs-example: ## Launch an example with GCS as data source. Adjust class an
 	       https://storage.googleapis.com/sparknetes/fraud-joiner-assembly-1.1.jar gs://fraud-dataset/dataset/bkOn gs://sparknetes/fraud.parquet"
 
 .PHONY: gke-spark-expose-ui
-gke-spark-expose-ui:
+gke-spark-expose-ui: ## Expose a spark UI by a public IP
 	@SPARK_PODS=`docker exec gke-bastion \
 	  sh -c "kubectl get pods --show-all -l spark-role=driver -o jsonpath='{range .items[*]}{.metadata.name}{\"\\t\"}{.metadata.annotations.spark-app-name}{\"\\n\"}{end}'"`; \
 	SPARK_POD=`echo $$SPARK_PODS | grep $(SPARK_APP_NAME) | awk '{print $$1}'`; \
@@ -129,6 +129,18 @@ gke-spark-expose-ui:
 	## Use pod port-forward or proxy url for an internal service
 
 .PHONY: gke-spark-open-ui
-gke-spark-open-ui:
+gke-spark-open-ui: ## Open spark UI atomatically
 	$(OPEN) http://$(shell docker exec gke-bastion \
 	  sh -c "kubectl get svc $(SPARK_APP_NAME)-svc -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"):4040
+
+.PHONY: gke-spark-operator-install
+gke-spark-operator-install: ## Install spark operator helm chart
+	@docker exec gke-bastion \
+	  sh -c "helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator \
+	         && helm install incubator/sparkoperator --namespace default --set enableWebhook=true --wait"
+
+.PHONY: gke-spark-operator-example
+gke-spark-operator-example: ## Launch an example with GCS as data source. Adjust class and other confs. This example will use spark operator (incubator version)
+	@docker cp spark-operator.yaml gke-bastion:/tmp/spark-operator.yaml
+	@docker exec gke-bastion \
+	  sh -c "kubectl apply -f /tmp/spark-operator.yaml"
