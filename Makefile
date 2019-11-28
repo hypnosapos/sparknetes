@@ -80,7 +80,7 @@ spark-basic-example: ## Launch basic example (SparkPi) from a kubernetes pod.
 	       --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
 	       --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 	       --conf spark.kubernetes.driver.label.sparknetes=true \
-	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.4.1-SNAPSHOT.jar"
+	       local:///opt/spark/examples/target/original-spark-examples_2.11-*.jar"
 
 .PHONY: spark-ml-example
 spark-ml-example: ## Launch ml example from a kubernetes pod.
@@ -95,7 +95,7 @@ spark-ml-example: ## Launch ml example from a kubernetes pod.
 	       --conf spark.kubernetes.container.image=$(DOCKER_ORG)/spark:$(DOCKER_TAG) \
 	       --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 	       --conf spark.kubernetes.driver.label.sparknetes=true \
-	       local:///opt/spark/examples/target/original-spark-examples_2.11-2.4.1-SNAPSHOT.jar"
+	       local:///opt/spark/examples/target/original-spark-examples_2.11-*-SNAPSHOT.jar"
 
 .PHONY: spark-gcs-example
 spark-gcs-example: ## Launch an example with GCS as data source. Adjust class and other confs

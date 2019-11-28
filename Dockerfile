@@ -3,7 +3,7 @@ ARG JDK_VERSION='8'
 
 FROM maven:${MVN_VERSION}-jdk-${JDK_VERSION}-slim
 
-ARG GIT_SPARK='branch-2.4'
+ARG GIT_SPARK='v2.4.4'
 
 RUN apt update && apt install git docker python --yes
 

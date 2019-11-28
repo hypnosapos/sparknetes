@@ -17,7 +17,7 @@ Spark on kubernetes. Based on [official documentation of spark 2.4](https://spar
 In order to get base docker images to use with the `spark-submit` command we may use this intermediate one:
 
 ```bash
-make sparknetes-build spark-images
+make sparknetes-build spark-image
 ```
 > NOTE: This process may take you several minutes (~20 mins, under the wood there is a maven packaging task running).
  Take a look at Makefile file to view default values and other variables.
