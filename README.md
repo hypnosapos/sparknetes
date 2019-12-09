@@ -14,7 +14,7 @@ Spark on kubernetes. Based on [official documentation of spark 2.4](https://spar
 
 ## Spark docker images
 
-In order to get base docker images to use with the `spark-submit` command we may use this intermediate one:
+To get a base docker image to use for launch spark on kubernetes type:
 
 ```bash
 make sparknetes-build spark-image
@@ -22,13 +22,7 @@ make sparknetes-build spark-image
 > NOTE: This process may take you several minutes (~20 mins, under the wood there is a maven packaging task running).
  Take a look at Makefile file to view default values and other variables.
 
-We've left docker images available at [dockerhub/hypnosapos](https://hub.docker.com/r/hypnosapos/) (sparknetes and spark images)
-
-You could push your own images as well by:
-
-```bash
-DOCKER_ORG=<registry_org> DOCKER_USERNAME=<registry_user> DOCKER_PASSWORD=<registry_pass> make sparknetes-build spark-images
-```
+This docker image is available at [dockerhub/hypnosapos](https://hub.docker.com/r/hypnosapos/).
 
 ## Kubernetes cluster
 
@@ -128,6 +122,3 @@ Remove all spark resources on kubernetes cluster:
 make gke-spark-clean
 ```
 
-## TODO
-- [ ] Benchmarks.
-- [ ] BigDL examples and analytics zoo use cases.

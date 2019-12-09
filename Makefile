@@ -2,7 +2,7 @@
 
 DOCKER_MVN_VERSION ?= 3.5.4
 DOCKER_JDK_VERSION ?= 8
-DOCKER_GIT_SPARK   ?= branch-2.4
+DOCKER_GIT_SPARK   ?= v2.4.4
 DOCKER_ORG         ?= hypnosapos
 DOCKER_IMAGE       ?= sparknetes
 DOCKER_TAG         ?= 2.4

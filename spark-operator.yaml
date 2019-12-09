@@ -12,11 +12,15 @@ spec:
   image: "gcr.io/spark-operator/spark:v2.4.4-gcs-prometheus"
   imagePullPolicy: Always
   mainClass: yourMainClass
-  mainApplicationFile: "https://storage.googleapis.com/sparknetes/fraud-joiner-assembly-1.1.jar"
+  mainApplicationFile: "gs://sparknetes/fraud-joiner-assembly-1.1.jar"
   arguments:
     - "gs://fraud-dataset/dataset/bkOn"
     - "gs://sparknetes/fraud.parquet"
-  sparkVersion: "2.4.0"
+  hadoopConf:
+    "fs.gs.project.id": "sparknetes"
+    "fs.gs.system.bucket": "sparknetes"
+    "google.cloud.auth.service.account.enable": "true"
+    "google.cloud.auth.service.account.json.keyfile": "/mnt/secrets/key.json"
   restartPolicy:
     type: Never
   volumes:
@@ -25,9 +29,8 @@ spec:
         path: "/tmp"
         type: Directory
   driver:
-    cores: 1
-    coreLimit: "1000m"
-    memory: "512m"
+    cores: 2
+    memory: "2048m"
     labels:
       version: 2.4.4
       sparknetes: "true"
@@ -37,18 +40,26 @@ spec:
         mountPath: "/tmp"
     secrets:
       - name: gcloud-creds
-        path: /opt/spark/gcp
+        path: /mnt/secrets
         secretType: GCPServiceAccount
+    envVars:
+      GCS_PROJECT_ID: sparknetes
   executor:
     cores: 2
-    instances: 4
-    memory: "1024m"
+    instances: 2
+    memory: "2048m"
     labels:
       version: 2.4.4
       sparknetes: "true"
     volumeMounts:
       - name: "test-volume"
         mountPath: "/tmp"
+    secrets:
+      - name: gcloud-creds
+        path: /mnt/secrets
+        secretType: GCPServiceAccount
+    envVars:
+      GCS_PROJECT_ID: sparknetes
   monitoring:
     exposeDriverMetrics: true
     exposeExecutorMetrics: true
